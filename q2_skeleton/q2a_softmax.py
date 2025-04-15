@@ -16,7 +16,7 @@ def softmax(x):
     if len(x.shape) > 1:
         # Matrix
         ### YOUR CODE HERE
-        # Shift by a constance for numerical stability
+        # Shift by a constant for numerical stability
         c = - np.max(x, axis=1, keepdims=True)
         exp_x = np.exp(x + c)
 
@@ -25,7 +25,7 @@ def softmax(x):
     else:
         # Vector
         ### YOUR CODE HERE
-        # Shift by a constance for numerical stability
+        # Shift by a constant for numerical stability
         c = - np.max(x)
         exp_x = np.exp(x + c)
 
