@@ -20,7 +20,7 @@ def softmax(x):
         c = - np.max(x, axis=1, keepdims=True)
         exp_x = np.exp(x + c)
 
-        x = exp_x / np.sum(exp_x, axis=1, keepdims=True) # in place
+        x = exp_x / np.sum(exp_x, axis=1, keepdims=True)  # in place
         ### END YOUR CODE
     else:
         # Vector
@@ -29,7 +29,7 @@ def softmax(x):
         c = - np.max(x)
         exp_x = np.exp(x + c)
 
-        x = exp_x / np.sum(exp_x) # in place
+        x = exp_x / np.sum(exp_x)  # in place
         ### END YOUR CODE
 
     assert x.shape == orig_shape
@@ -44,7 +44,7 @@ def test_softmax_basic():
     print("Running basic tests...")
     test1 = softmax(np.array([1, 2]))
     print(test1)
-    ans1 = np.array([0.26894142,  0.73105858])
+    ans1 = np.array([0.26894142, 0.73105858])
     assert np.allclose(test1, ans1, rtol=1e-05, atol=1e-06)
 
     test2 = softmax(np.array([[1001, 1002], [3, 4]]))

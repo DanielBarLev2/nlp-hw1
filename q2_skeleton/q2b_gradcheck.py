@@ -18,6 +18,8 @@ def gradcheck_naive(f, x, gradient_text=""):
     fx, grad = f(x)  # Evaluate function value at original point
     h = 1e-4         # Do not change this!
 
+    numgrad = np.zeros_like(grad)
+
     # Iterate over all indexes ix in x to check the gradient.
     it = np.nditer(x, flags=['multi_index'], op_flags=['readwrite'])
     while not it.finished:
@@ -33,10 +35,20 @@ def gradcheck_naive(f, x, gradient_text=""):
 
         # Make sure you call random.setstate(rndstate)
         # before calling f(x) each time. This will make it possible
-        # to test cost functions with built in randomness later.
+        # to test cost functions with built-in randomness later.
 
         ### YOUR CODE HERE:
-        raise NotImplementedError
+        orig = x[ix]
+        x[ix] = orig + h
+        random.setstate(rndstate)
+        fx_right, _ = f(x)
+        x[ix] = orig - h
+        random.setstate(rndstate)
+        fx_left, _ = f(x)
+        x[ix] = orig
+
+        numgrad = (fx_right - fx_left) / (2 * h)
+
         ### END YOUR CODE
 
         # Compare gradients
