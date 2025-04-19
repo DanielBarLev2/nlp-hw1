@@ -2,7 +2,6 @@
 import random
 
 import numpy as np
-import pandas as pd
 
 from helpers.utils import normalize_rows, sigmoid, get_negative_samples
 from q2a_softmax import softmax
@@ -83,19 +82,28 @@ def neg_sampling_loss_and_gradient(
 
     # Negative sampling of words is done for you. Do not modify this if you
     # wish to match the autograder and receive points!
-    neg_sample_word_indices = get_negative_samples(outside_word_idx, dataset, K)
+    # neg_sample_word_indices = get_negative_samples(outside_word_idx, dataset, K)
+    # indices = [outside_word_idx] + neg_sample_word_indices
+
+    neg_sample_word_indices = list(np.random.randint(outside_vectors.shape[0], size=K))
     indices = [outside_word_idx] + neg_sample_word_indices
 
     ### YOUR CODE HERE
-    loss = (-np.log(sigmoid(np.dot(outside_vectors[outside_word_idx].T, center_word_vec)))
-            - np.sum(np.log(sigmoid(-np.dot(outside_vectors[neg_sample_word_indices].T, center_word_vec)))))
+    # ------- Loss
+    # Using a label array, overcome the sign difference in the formula. Therefore, a shorter term archived
+    labels = np.array([1] + [-1] * K)
+    u_o_k = outside_vectors[indices]
+    scores = u_o_k.dot(center_word_vec)
+    loss = -np.sum(np.log(sigmoid(labels * scores)))
 
-    grad_center_vec = (-(1 - sigmoid(np.dot(outside_vectors[outside_word_idx].T, center_word_vec)))
-                       * outside_vectors[outside_word_idx]) + np.sum(
-        1 - sigmoid(-np.dot(outside_vectors[neg_sample_word_indices].T, center_word_vec))) * outside_vectors[
-                          neg_sample_word_indices]
-    grad_outside_vecs = (-(1 - sigmoid(np.dot(outside_vectors[outside_word_idx].T, center_word_vec)))) * center_word_vec
-    grad_outside_vecs[neg_sample_word_indices] = ""
+    # ------- d-J/d-v_c : dim=(d)
+    delta = - (1 - sigmoid(labels * scores)) * labels
+    grad_center_vec = delta.T.dot(u_o_k)
+
+    # ------- d-J/d-U : dim=(w, d)
+    grad_outside_vecs = np.zeros_like(outside_vectors)
+    # Overcomes the problem of repeating indicis with a usage of accumulating update, rather than overwriting.
+    np.add.at(a=grad_outside_vecs, indices=indices, b=delta[:, None] * center_word_vec)
     ### END YOUR CODE
 
     return loss, grad_center_vec, grad_outside_vecs
@@ -250,12 +258,12 @@ Gradient wrt Center Vectors (dJ/dV):
 
 
 if __name__ == "__main__":
-    num_words = 10
+    num_words = 10000
     d = 2
-    center_word_vec = np.random.randn(d)
-    outside_word_idx = np.random.randint(num_words)
-    outside_vectors = np.random.randn(num_words, d)
+    _center_word_vec = np.random.randn(d)
+    _outside_word_idx = np.random.randint(num_words)
+    _outside_vectors = np.random.randn(num_words, d)
 
-    naive_softmax_loss_and_gradient(center_word_vec, outside_word_idx, outside_vectors, dataset="")
-
+    # naive_softmax_loss_and_gradient(_center_word_vec, _outside_word_idx, _outside_vectors, dataset="")
+    neg_sampling_loss_and_gradient(_center_word_vec, _outside_word_idx, _outside_vectors, dataset="")
     test_word2vec_basic()
