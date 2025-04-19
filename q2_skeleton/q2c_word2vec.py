@@ -145,13 +145,10 @@ def skipgram(current_center_word, outside_words, word2ind,
 
     for outside_word in outside_words:
         outside_word_idx = word2ind[outside_word]
-        single_loss, single_grad_center_vecs, single_grad_outside_vectors = word2vec_loss_and_gradient(v_c,
-                                                                                                       outside_word_idx,
-                                                                                                       outside_vectors,
-                                                                                                              dataset)
-        loss += single_loss
-        grad_center_vecs[center_word_index] += single_grad_center_vecs
-        grad_outside_vectors += single_grad_outside_vectors
+        l, g_c, g_u = word2vec_loss_and_gradient(v_c, outside_word_idx, outside_vectors, dataset)
+        loss += l
+        grad_center_vecs[center_word_index] += g_c
+        grad_outside_vectors += g_u
     ### END YOUR CODE
 
     return loss, grad_center_vecs, grad_outside_vectors
@@ -266,10 +263,4 @@ Gradient wrt Center Vectors (dJ/dV):
 
 
 if __name__ == "__main__":
-    num_words = 10000
-    d = 2
-    _center_word_vec = np.random.randn(d)
-    _outside_word_idx = np.random.randint(num_words)
-    _outside_vectors = np.random.randn(num_words, d)
-
     test_word2vec_basic()
