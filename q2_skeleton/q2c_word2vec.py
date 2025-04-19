@@ -82,10 +82,7 @@ def neg_sampling_loss_and_gradient(
 
     # Negative sampling of words is done for you. Do not modify this if you
     # wish to match the autograder and receive points!
-    # neg_sample_word_indices = get_negative_samples(outside_word_idx, dataset, K)
-    # indices = [outside_word_idx] + neg_sample_word_indices
-
-    neg_sample_word_indices = list(np.random.randint(outside_vectors.shape[0], size=K))
+    neg_sample_word_indices = get_negative_samples(outside_word_idx, dataset, K)
     indices = [outside_word_idx] + neg_sample_word_indices
 
     ### YOUR CODE HERE
@@ -103,7 +100,7 @@ def neg_sampling_loss_and_gradient(
     # ------- d-J/d-U : dim=(w, d)
     grad_outside_vecs = np.zeros_like(outside_vectors)
     # Overcomes the problem of repeating indicis with a usage of accumulating update, rather than overwriting.
-    np.add.at(a=grad_outside_vecs, indices=indices, b=delta[:, None] * center_word_vec)
+    np.add.at(grad_outside_vecs, indices, delta[:, None] * center_word_vec)
     ### END YOUR CODE
 
     return loss, grad_center_vec, grad_outside_vecs
@@ -143,7 +140,18 @@ def skipgram(current_center_word, outside_words, word2ind,
     grad_outside_vectors = np.zeros(outside_vectors.shape)
 
     ### YOUR CODE HERE
-    raise NotImplementedError
+    center_word_index = word2ind[current_center_word]
+    v_c = center_word_vectors[center_word_index]
+
+    for outside_word in outside_words:
+        outside_word_idx = word2ind[outside_word]
+        single_loss, single_grad_center_vecs, single_grad_outside_vectors = word2vec_loss_and_gradient(v_c,
+                                                                                                       outside_word_idx,
+                                                                                                       outside_vectors,
+                                                                                                              dataset)
+        loss += single_loss
+        grad_center_vecs[center_word_index] += single_grad_center_vecs
+        grad_outside_vectors += single_grad_outside_vectors
     ### END YOUR CODE
 
     return loss, grad_center_vecs, grad_outside_vectors
@@ -264,6 +272,4 @@ if __name__ == "__main__":
     _outside_word_idx = np.random.randint(num_words)
     _outside_vectors = np.random.randn(num_words, d)
 
-    # naive_softmax_loss_and_gradient(_center_word_vec, _outside_word_idx, _outside_vectors, dataset="")
-    neg_sampling_loss_and_gradient(_center_word_vec, _outside_word_idx, _outside_vectors, dataset="")
     test_word2vec_basic()
