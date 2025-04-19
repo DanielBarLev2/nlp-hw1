@@ -2,6 +2,7 @@
 import random
 
 import numpy as np
+import pandas as pd
 
 from helpers.utils import normalize_rows, sigmoid, get_negative_samples
 from q2a_softmax import softmax
@@ -38,13 +39,22 @@ def naive_softmax_loss_and_gradient(
     """
 
     ### YOUR CODE HERE
-    y_hat = softmax(np.dot(outside_vectors.T, center_word_vec))
-    y_o = y_hat[outside_word_idx]
-    loss = - np.log(y_o)
+    # ------- Loss
+    y_hat = softmax(outside_vectors.dot(center_word_vec))
+    # One-hoy vector @outside_word_idx
+    y = np.zeros_like(y_hat)
+    y[outside_word_idx] = 1
 
-    grad_center_vec = y_o - np.dot(y_hat.T, outside_vectors)
-    grad_outside_vecs = np.dot(y_hat.T, center_word_vec)
-    grad_outside_vecs[outside_word_idx] = center_word_vec * (y_o - 1)
+    # Equivalently: - log(y_hat[outside_word_idx])
+    loss = - np.log(y_hat.dot(y))
+
+    # ------- d-J/d-v_c : dim=(d)
+    u_o = outside_vectors[outside_word_idx]
+    # The expected outside‐vector under the model’s own distribution, minus the true outside word’s vector.
+    grad_center_vec = y_hat.dot(outside_vectors) - u_o
+
+    # ------- d-J/d-U : dim=(w, d)
+    grad_outside_vecs = (y_hat - y).reshape(-1, 1) * center_word_vec
     ### END YOUR CODE
 
     return loss, grad_center_vec, grad_outside_vecs
@@ -84,8 +94,8 @@ def neg_sampling_loss_and_gradient(
                        * outside_vectors[outside_word_idx]) + np.sum(
         1 - sigmoid(-np.dot(outside_vectors[neg_sample_word_indices].T, center_word_vec))) * outside_vectors[
                           neg_sample_word_indices]
-    grad_outside_vecs = (-(1 - sigmoid(np.dot(outside_vectors[outside_word_idx].T, center_word_vec))))*center_word_vec
-    grad_outside_vecs[neg_sample_word_indices] =""
+    grad_outside_vecs = (-(1 - sigmoid(np.dot(outside_vectors[outside_word_idx].T, center_word_vec)))) * center_word_vec
+    grad_outside_vecs[neg_sample_word_indices] = ""
     ### END YOUR CODE
 
     return loss, grad_center_vec, grad_outside_vecs
@@ -240,4 +250,12 @@ Gradient wrt Center Vectors (dJ/dV):
 
 
 if __name__ == "__main__":
+    num_words = 10
+    d = 2
+    center_word_vec = np.random.randn(d)
+    outside_word_idx = np.random.randint(num_words)
+    outside_vectors = np.random.randn(num_words, d)
+
+    naive_softmax_loss_and_gradient(center_word_vec, outside_word_idx, outside_vectors, dataset="")
+
     test_word2vec_basic()
